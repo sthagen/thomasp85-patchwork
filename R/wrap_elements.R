@@ -16,8 +16,8 @@
 #' geoms, etc.. When grobs and formulas are added directly, they will implicitly
 #' be converted to `wrap_elements(full = x)`.
 #'
-#' @param panel,plot,full A grob, ggplot, patchwork, or formula object to add to
-#' the respective area.
+#' @param panel,plot,full A grob, ggplot, patchwork, formula, raster, or
+#' nativeRaster object to add to the respective area.
 #'
 #' @param clip Should the grobs be clipped if expanding outside its area
 #'
@@ -71,6 +71,7 @@ is_wrapped_patch <- function(x) inherits(x, 'wrapped_patch')
 #' @importFrom ggplot2 ggplotGrob theme_get
 #' @importFrom gtable gtable_add_grob
 #' @importFrom grid grobHeight convertHeight
+#' @export
 patchGrob.wrapped_patch <- function(x, guides = 'auto') {
   gt <- ggplotGrob(x)
   table <- patch_table(x, gt)
@@ -127,21 +128,26 @@ patchGrob.wrapped_patch <- function(x, guides = 'auto') {
 as_patch <- function(x, ...) {
   UseMethod('as_patch')
 }
+#' @export
 as_patch.grob <- function(x, ...) {
   x
 }
 #' @importFrom grid gTree
+#' @export
 as_patch.gList <- function(x, ...) {
   gTree(children = x)
 }
 #' @importFrom ggplot2 ggplotGrob
+#' @export
 as_patch.ggplot <- function(x, ...) {
   ggplotGrob(x)
 }
+#' @export
 as_patch.patchwork <- function(x, ...) {
   patchworkGrob(x)
 }
-as_patch.formula <- function(x) {
+#' @export
+as_patch.formula <- function(x, ...) {
   if (!requireNamespace('gridGraphics', quietly = TRUE)) {
     stop('The gridGraphics package is required for this functionality', call. = FALSE)
   }
@@ -150,14 +156,23 @@ as_patch.formula <- function(x) {
     old_gp <- graphics::par(no.readonly = TRUE)
     graphics::par(gp)
     on.exit(try(graphics::par(old_gp)))
-    res <- suppressMessages(eval(x[[2]], attr(t, '.Environment')))
+    res <- suppressMessages(eval(x[[2]], attr(x, '.Environment')))
     invisible(NULL)
   }
   gridGraphics::echoGrob(plot_call, name = 'patchwork_base', device = offscreen_dev())
 }
+#' @export
+#' @importFrom grid rasterGrob
+as_patch.raster <- function(x, ...) {
+  as_patch(rasterGrob(x), ...)
+}
+#' @export
+as_patch.nativeRaster <- as_patch.raster
 
 #' @importFrom ggplot2 ggplotGrob
 get_grob <- function(x, name) {
+  ind <- grep(paste0('^', name, '$'), x$layout$name)
+  if (length(ind) == 0) return(ggplot2::zeroGrob())
   x$grobs[[grep(paste0('^', name, '$'), x$layout$name)]]
 }
 offscreen_dev <- function() {
@@ -173,5 +188,5 @@ offscreen_dev <- function() {
     }
   }
 }
-
+#' @export
 has_tag.wrapped_patch <- function(x) !attr(x, 'settings')$ignore_tag

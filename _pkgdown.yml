@@ -30,6 +30,8 @@ navbar:
     - text: News
       menu:
       - text: "Release notes"
+      - text: "Version 1.1.0"
+        href: https://www.data-imaginist.com/2020/insetting-a-new-patchwork-version/
       - text: "Version 1.0.0"
         href: https://www.data-imaginist.com/2019/patch-it-up-and-send-it-out/
       - text: "------------------"
@@ -49,6 +51,7 @@ reference:
   contents:
   - /.ggplot
   - wrap_plots
+  - inset_element
 - title: Layout Specifications
   desc: >
     While patchwork will automatically lay out the plots in a grid, additional

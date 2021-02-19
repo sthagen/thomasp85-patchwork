@@ -1,7 +1,7 @@
 Package: patchwork
 Type: Package
 Title: The Composer of Plots
-Version: 1.0.0.9000
+Version: 1.1.0.9000
 Authors@R:
     person(given = "Thomas Lin",
            family = "Pedersen",
@@ -27,7 +27,7 @@ Imports:
     grDevices,
     utils,
     graphics
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
 URL: https://patchwork.data-imaginist.com, https://github.com/thomasp85/patchwork
 BugReports: https://github.com/thomasp85/patchwork/issues
@@ -39,5 +39,6 @@ Suggests:
     ragg,
     testthat (>= 2.1.0),
     vdiffr,
-    covr
+    covr,
+    png
 VignetteBuilder: knitr

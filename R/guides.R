@@ -1,13 +1,21 @@
 unname_vp <- function(x) {
   if (inherits(x, 'vpTree')) {
-    x$parent$name <- ''
+    x$parent <- unname_vp(x$parent)
     x$children <- lapply(x$children, unname_vp)
   } else if (inherits(x, 'viewport')) {
     x$name <- ''
+    if (!is.null(x$layout$widths)) {
+      x$layout$widths <- absolute.size(x$layout$widths)
+    }
+    if (!is.null(x$layout$heights)) {
+      x$layout$heights <- absolute.size(x$layout$heights)
+    }
   }
+  unit_elements <- vapply(x, is.unit, logical(1))
+  x[unit_elements] <- lapply(.subset(x, unit_elements), absolute.size)
   x
 }
-#' @importFrom grid is.grob
+#' @importFrom grid is.grob is.unit absolute.size
 #' @importFrom gtable is.gtable
 unname_grob <- function(x) {
   if (is.gtable(x)) {
@@ -22,6 +30,8 @@ unname_grob <- function(x) {
     x$children <- lapply(x$children, unname_grob)
     x$childrenOrder <- rep_len('', length(x$childrenOrder))
   }
+  unit_elements <- vapply(x, is.unit, logical(1))
+  x[unit_elements] <- lapply(.subset(x, unit_elements), absolute.size)
   x
 }
 collapse_guides <- function(guides) {
@@ -93,8 +103,27 @@ guides_build <- function(guides, theme) {
     z = -Inf, clip = "off", name = "legend.box.background"
   )
 }
+complete_guide_theme <- function(theme) {
+  position <- theme$legend.position %||% "right"
+  if (length(position) == 2) {
+    warning("Manual legend position not possible for collected guides. Defaulting to 'right'", call. = FALSE)
+    position <- "right"
+  }
+  theme$legend.position <- position
+  if (position %in% c("top", "bottom")) {
+    theme$legend.box <- theme$legend.box %||% "horizontal"
+    theme$legend.direction <- theme$legend.direction %||% "horizontal"
+    theme$legend.box.just <- theme$legend.box.just %||% c("center", "top")
+  } else {
+    theme$legend.box <- theme$legend.box %||% "vertical"
+    theme$legend.direction <- theme$legend.direction %||% "vertical"
+    theme$legend.box.just <- theme$legend.box.just %||% c("left", "top")
+  }
+  theme
+}
 #' @importFrom grid valid.just
 assemble_guides <- function(guides, theme) {
+  theme <- complete_guide_theme(theme)
   guides <- guides_build(guides, theme)
 
   # Set the justification of the legend box
@@ -113,8 +142,9 @@ assemble_guides <- function(guides, theme) {
 #' @importFrom gtable gtable_width gtable_height
 #' @importFrom grid unit.c
 attach_guides <- function(table, guides, theme) {
-  if (any(table$layout$name == 'panel-guide_area')) {
-    area_ind <- which(table$layout$name == 'panel-guide_area')
+  guide_areas <- grepl('panel-guide_area', table$layout$name)
+  if (any(guide_areas)) {
+    area_ind <- which(guide_areas)
     if (length(area_ind) != 1) {
       warning("Only using the first guide area", call. = FALSE)
     }

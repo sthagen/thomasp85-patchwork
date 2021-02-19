@@ -12,6 +12,17 @@ ggplot_add.grob <- function(object, plot, object_name) {
 #' @importFrom ggplot2 ggplot_add
 #' @export
 ggplot_add.formula <- ggplot_add.grob
+#' @importFrom ggplot2 ggplot_add
+#' @export
+ggplot_add.raster <- ggplot_add.grob
+#' @importFrom ggplot2 ggplot_add
+#' @export
+ggplot_add.nativeRaster <- ggplot_add.grob
+
+should_autowrap <- function(x) {
+  is.grob(x) || inherits(x, 'formula') || is.raster(x) || inherits(x, 'nativeRaster')
+}
+
 # Convert a plot with a (possible) list of patches into a selfcontained
 # patchwork to be attached to another plot
 get_patches <- function(plot) {
@@ -32,24 +43,29 @@ is_patchwork <- function(x) inherits(x, 'patchwork')
 as_patchwork <- function(x) {
   UseMethod('as_patchwork')
 }
+#' @export
 as_patchwork.default <- function(x) {
   stop('Don\'t know how to convert an object of class <', paste(class(x), collapse = ', '),'> to a patchwork', call. = FALSE)
 }
+#' @export
 as_patchwork.ggplot <- function(x) {
   class(x) <- c('patchwork', class(x))
   x$patches <- new_patchwork()
   x
 }
+#' @export
 as_patchwork.patchwork <- function(x) x
 
 add_patches <- function(plot, patches) {
   UseMethod('add_patches')
 }
+#' @export
 add_patches.ggplot <- function(plot, patches) {
   plot <- as_patchwork(plot)
   plot$patches <- patches
   plot
 }
+#' @export
 add_patches.patchwork <- function(plot, patches) {
   patches$plots <- c(patches$plots, list(plot))
   add_patches(plot_filler(), patches)
@@ -68,4 +84,5 @@ plot_filler <- function() {
   p
 }
 is_empty <- function(x) inherits(x, 'plot_filler')
+#' @export
 has_tag.plot_filler <- function(x) FALSE
