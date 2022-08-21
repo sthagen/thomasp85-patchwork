@@ -5,21 +5,18 @@
 
 <!-- badges: start -->
 
-[![R build
-status](https://github.com/thomasp85/patchwork/workflows/R-CMD-check/badge.svg)](https://github.com/thomasp85/patchwork/actions)
-[![CRAN\_Release\_Badge](http://www.r-pkg.org/badges/version-ago/patchwork)](https://CRAN.R-project.org/package=patchwork)
-[![CRAN\_Download\_Badge](http://cranlogs.r-pkg.org/badges/patchwork)](https://CRAN.R-project.org/package=patchwork)
-[![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![R-CMD-check](https://github.com/thomasp85/patchwork/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/thomasp85/patchwork/actions/workflows/R-CMD-check.yaml)
+[![CRAN_Release_Badge](http://www.r-pkg.org/badges/version-ago/patchwork)](https://CRAN.R-project.org/package=patchwork)
+[![CRAN_Download_Badge](http://cranlogs.r-pkg.org/badges/patchwork)](https://CRAN.R-project.org/package=patchwork)
 [![Codecov test
-coverage](https://codecov.io/gh/thomasp85/patchwork/branch/master/graph/badge.svg)](https://codecov.io/gh/thomasp85/patchwork?branch=master)
+coverage](https://codecov.io/gh/thomasp85/patchwork/branch/main/graph/badge.svg)](https://app.codecov.io/gh/thomasp85/patchwork?branch=main)
 <!-- badges: end -->
 
 The goal of `patchwork` is to make it ridiculously simple to combine
 separate ggplots into the same graphic. As such it tries to solve the
 same problem as `gridExtra::grid.arrange()` and `cowplot::plot_grid` but
 using an API that incites exploration and iteration, and scales to
-arbitrily complex layouts.
+arbitrarily complex layouts.
 
 ## Installation
 
@@ -34,7 +31,7 @@ devtools::install_github("thomasp85/patchwork")
 
 ## Basic example
 
-The usage of `patchwork` is simple: just add plots together\!
+The usage of `patchwork` is simple: just add plots together!
 
 ``` r
 library(ggplot2)
@@ -67,15 +64,15 @@ p4 <- ggplot(mtcars) + geom_bar(aes(carb))
 patchwork can do so much more. Check out the guides for learning
 everything there is to know about all the different features:
 
-  - [Getting
+-   [Getting
     Started](https://patchwork.data-imaginist.com/articles/patchwork.html)
-  - [Assembling
+-   [Assembling
     Plots](https://patchwork.data-imaginist.com/articles/guides/assembly.html)
-  - [Defining
+-   [Defining
     Layouts](https://patchwork.data-imaginist.com/articles/guides/layout.html)
-  - [Adding
+-   [Adding
     Annotation](https://patchwork.data-imaginist.com/articles/guides/annotation.html)
-  - [Aligning across
+-   [Aligning across
     pages](https://patchwork.data-imaginist.com/articles/guides/multipage.html)
 
 ## Code of Conduct

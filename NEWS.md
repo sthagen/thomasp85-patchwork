@@ -1,5 +1,11 @@
 # patchwork (development version)
 
+# patchwork 1.1.2
+
+* Better error message if rendering fails due to too small plotting space
+
+# patchwork 1.1.1
+
 * Use vdiffr conditionally to pass test on M1 mac
 * Add `str()` method to patchwork objects (#217)
 * Fix a bug in `inset_element()` when insetting plots with fixed dimensions 

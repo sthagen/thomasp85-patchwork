@@ -19,11 +19,13 @@ ggplot_add.raster <- ggplot_add.grob
 #' @export
 ggplot_add.nativeRaster <- ggplot_add.grob
 
+#' @importFrom grid is.grob
+#' @importFrom grDevices is.raster
 should_autowrap <- function(x) {
   is.grob(x) || inherits(x, 'formula') || is.raster(x) || inherits(x, 'nativeRaster')
 }
 
-# Convert a plot with a (possible) list of patches into a selfcontained
+# Convert a plot with a (possible) list of patches into a self-contained
 # patchwork to be attached to another plot
 get_patches <- function(plot) {
   empty <- is_empty(plot)
