@@ -47,12 +47,14 @@ as_patchwork <- function(x) {
 }
 #' @export
 as_patchwork.default <- function(x) {
-  stop('Don\'t know how to convert an object of class <', paste(class(x), collapse = ', '),'> to a patchwork', call. = FALSE)
+  cli_abort('Don\'t know how to convert an object of class {.cls {class(x)}} to a patchwork')
 }
 #' @export
 as_patchwork.ggplot <- function(x) {
   class(x) <- c('patchwork', class(x))
   x$patches <- new_patchwork()
+  # Will ensure serialisation includes a link to the patchwork namespace
+  attr(x, 'patchwork_link') <- patchwork_namespace_link
   x
 }
 #' @export

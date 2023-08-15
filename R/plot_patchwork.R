@@ -35,9 +35,13 @@ print.patchwork <- function(x, newpage = is.null(vp), vp = NULL, ...) {
     error = function(e) {
       if (inherits(e, 'simpleError') && deparse(conditionCall(e)[[1]]) == 'grid.Call') {
         if (Sys.getenv("RSTUDIO") == "1") {
-          stop("The RStudio 'Plots' window may be too small to show this patchwork.\n Please make the window larger.", call. = FALSE)
+          cli_abort(c("The RStudio {.field Plots} window may be too small to show this patchwork.",
+                    i = "Please make the window larger.")
+          )
         } else {
-          stop("The viewport may be too small to show this patchwork.\n Please make it larger.", call. = FALSE)
+          cli_abort(c("The viewport may be too small to show this patchwork.",
+                      i = "Please make the window larger.")
+          )
         }
       }
     }
@@ -52,10 +56,16 @@ print.patchwork <- function(x, newpage = is.null(vp), vp = NULL, ...) {
 #' @export
 plot.patchwork <- print.patchwork
 #' @export
+length.patchwork <- function(x) {
+  length(x$patches$plots) + !is_empty(x)
+}
+#' @export
+names.patchwork <- function(x) NULL
+#' @export
 `[[.patchwork` <- function(x, ..., exact = TRUE) {
   ind <- ..1
   if (!is.numeric(ind)) {
-    stop('Patchworks can only be indexed with numeric indices', call. = FALSE)
+    cli_abort('Patchworks can only be indexed with numeric indices')
   }
 
   n_patches <- length(x$patches$plots)
@@ -65,13 +75,13 @@ plot.patchwork <- print.patchwork
     class(plot) <- setdiff(class(plot), 'patchwork')
   } else {
     if (ind > n_patches) {
-      stop('Index out of bounds', call. = FALSE)
+      cli_abort('Index out of bounds')
     }
     plot <- x$patches$plots[[ind[1]]]
   }
   if (length(ind) > 1) {
     if (!is_patchwork(plot)) {
-      stop('Can only do nested indexing into patchworks', call. = FALSE)
+      cli_abort('Can only do nested indexing into patchworks')
     }
     plot <- plot[[ind[-1]]]
   }
@@ -81,7 +91,7 @@ plot.patchwork <- print.patchwork
 `[[<-.patchwork` <- function(x, ..., value) {
   ind <- ..1
   if (!is.numeric(ind)) {
-    stop('Patchworks can only be indexed with numeric indices', call. = FALSE)
+    cli_abort('Patchworks can only be indexed with numeric indices')
   }
 
   if (!is.ggplot(value)) {
@@ -90,13 +100,13 @@ plot.patchwork <- print.patchwork
   n_patches <- length(x$patches$plots)
   if (!is_empty(x) && ind == n_patches + 1) {
     if (length(ind) != 1) {
-      stop('Can only do nested indexing into patchworks', call. = FALSE)
+      cli_abort('Can only do nested indexing into patchworks')
     }
     return(add_patches(value, x$patches))
   }
   if (length(ind) > 1) {
     if (!is_patchwork(x$patches$plots[[ind[1]]])) {
-      stop('Can only do nested indexing into patchworks', call. = FALSE)
+      cli_abort('Can only do nested indexing into patchworks')
     }
     x$patches$plots[[ind[1]]][[ind[-1]]] <- value
   } else {
@@ -177,7 +187,7 @@ build_patchwork <- function(x, guides = 'auto') {
   if (any(design$r > dims[2])) design$r[design$r > dims[2]] <- dims[2]
   max_z <- lapply(gt, function(x) max(x$layout$z))
   max_z <- c(0, cumsum(max_z))
-  gt_new$layout <- do.call(rbind, lapply(seq_along(gt), function(i) {
+  gt_new$layout <- exec(rbind, !!!lapply(seq_along(gt), function(i) {
     loc <- design[i, ]
     lay <- gt[[i]]$layout
     lay$name <- paste0(lay$name, '-', i)
@@ -214,6 +224,16 @@ build_patchwork <- function(x, guides = 'auto') {
   } else {
     gt_new$collected_guides <- guide_grobs
   }
+
+  gt_new <- gtable_add_grob(
+    gt_new, zeroGrob(),
+    t = PANEL_ROW,
+    l = PANEL_COL,
+    b = PANEL_ROW + TABLE_ROWS * (dims[1] - 1),
+    r = PANEL_COL + TABLE_COLS * (dims[2] - 1),
+    z = -1,
+    name = "panel-area"
+  )
 
   class(gt_new) <- c('gtable_patchwork', class(gt_new))
   gt_new
@@ -343,7 +363,7 @@ simplify_free <- function(gt, gt_new, panels, rows, cols) {
     if (any(t_strips)) {
       gt_new$grobs[t_strips] <- lapply(gt_new$grobs[t_strips], function(g) {
         if (is.gtable(g)) {
-          g$vp <- viewport(y = 0, just = 'bottom', height = g$heights)
+          g$vp <- viewport(y = 0, just = 'bottom', height = sum(g$heights))
         }
         g
       })
@@ -352,7 +372,7 @@ simplify_free <- function(gt, gt_new, panels, rows, cols) {
     if (any(b_strips)) {
       gt_new$grobs[b_strips] <- lapply(gt_new$grobs[b_strips], function(g) {
         if (is.gtable(g)) {
-          g$vp <- viewport(y = 1, just = 'top', height = g$heights)
+          g$vp <- viewport(y = 1, just = 'top', height = sum(g$heights))
         }
         g
       })
@@ -396,7 +416,7 @@ simplify_free <- function(gt, gt_new, panels, rows, cols) {
     if (any(l_strips)) {
       gt_new$grobs[l_strips] <- lapply(gt_new$grobs[l_strips], function(g) {
         if (is.gtable(g)) {
-          g$vp <- viewport(x = 1, just = 'right', width = g$widths)
+          g$vp <- viewport(x = 1, just = 'right', width = sum(g$widths))
         }
         g
       })
@@ -405,7 +425,7 @@ simplify_free <- function(gt, gt_new, panels, rows, cols) {
     if (any(r_strips)) {
       gt_new$grobs[r_strips] <- lapply(gt_new$grobs[r_strips], function(g) {
         if (is.gtable(g)) {
-          g$vp <- viewport(x = 0, just = 'left', width = g$widths)
+          g$vp <- viewport(x = 0, just = 'left', width = sum(g$widths))
         }
         g
       })
@@ -633,19 +653,21 @@ add_strips <- function(gt) {
   )
   if (!any(grepl('strip-b', gt$layout$name))) {
     gt <- gtable_add_rows(gt, unit(0, 'mm'), panel_loc$b + strip_pos)
-  } else if (strip_pos == 2) {
+  } else if (strip_pos == 2 && !any(gt$layout$b == panel_loc$b + 2)) {
+    # Merge the strip-gap height into the axis and remove it. Only performed if
+    # an axis exist
     gt$heights[panel_loc$b + 1] <- sum(gt$heights[panel_loc$b + c(1, 2)])
     gt <- gt[-(panel_loc$b + 2), ]
   }
   if (!any(grepl('strip-t', gt$layout$name))) {
     gt <- gtable_add_rows(gt, unit(0, 'mm'), panel_loc$t - 1 - strip_pos)
-  } else if (strip_pos == 2) {
+  } else if (strip_pos == 2 && !any(gt$layout$t == panel_loc$t - 2)) {
     gt$heights[panel_loc$t - 1] <- sum(gt$heights[panel_loc$t - c(1, 2)])
     gt <- gt[-(panel_loc$t - 2), ]
   }
   if (!any(grepl('strip-r', gt$layout$name))) {
     gt <- gtable_add_cols(gt, unit(0, 'mm'), panel_loc$r + strip_pos)
-  } else if (strip_pos == 2) {
+  } else if (strip_pos == 2 && !any(gt$layout$r == panel_loc$r + 2)) {
     gt$widths[panel_loc$r + 1] <- sum(gt$widths[panel_loc$r + c(1, 2)])
     gt <- gt[, -(panel_loc$r + 2)]
   }
@@ -764,8 +786,8 @@ set_panel_dimensions <- function(gt, panels, widths, heights, fixed_asp, design)
       panel_ind <- grep('panel', panels[[fixed_gt[i]]]$layout$name)[1]
       w <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$widths
       h <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$heights
-      can_set_width <- width_strings[fixed_areas[[i]]$cols] == '-1null' && length(w) == 1 && length(h) == 1
-      can_set_height <- height_strings[fixed_areas[[i]]$rows] == '-1null' && length(w) == 1 && length(h) == 1
+      can_set_width <- all(width_strings[fixed_areas[[i]]$cols] == '-1null') && length(w) == 1 && length(h) == 1
+      can_set_height <- all(height_strings[fixed_areas[[i]]$rows] == '-1null') && length(w) == 1 && length(h) == 1
       will_be_fixed <- TRUE
       if (can_set_width && can_set_height) {
         widths[fixed_areas[[i]]$cols] <- w
@@ -802,7 +824,7 @@ add_insets <- function(gt) {
   }
   canvas <- rank(cumsum(!is_inset), ties.method = "min")[is_inset]
   if (canvas[1] == 0) {
-    stop("insets cannot be the first plot in a patchwork", call. = FALSE)
+    cli_abort("insets cannot be the first plot in a patchwork")
   }
   insets <- which(is_inset)
   name <- paste0('inset_', insets)
@@ -827,7 +849,7 @@ add_insets <- function(gt) {
                                   PLOT_RIGHT, z = z, clip =  setting$clip, name = name[i]),
            full = gtable_add_grob(can, list(ins), 1, 1, nrow(can), ncol(can), z = z,
                                   clip = setting$clip, name = name[i]),
-           stop('Unknown alignment setting: `', setting$align_to, '`', call. = FALSE)
+           cli_abort('Unknown alignment setting: {.arg {setting$align_to}}')
     )
   }
   gt[!is_inset]

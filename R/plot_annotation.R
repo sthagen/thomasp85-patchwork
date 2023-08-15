@@ -139,7 +139,7 @@ recurse_tags <- function(x, levels, prefix, suffix, sep, offset = 1) {
 #' @importFrom grid unit
 #' @importFrom utils tail
 annotate_table <- function(table, annotation) {
-  p <- ggplot() + annotation$theme + do.call(labs, annotation[c('title', 'subtitle', 'caption')])
+  p <- ggplot() + annotation$theme + exec(labs, !!!annotation[c('title', 'subtitle', 'caption')])
   p <- ggplotGrob(p)
   max_z <- max(table$layout$z)
   fix_respect <- is.matrix(table$respect)
@@ -189,6 +189,6 @@ get_level <- function(x) {
     "1" = 1:100,
     i = tolower(as.roman(1:100)),
     I = as.roman(1:100),
-    stop('Unknown tag type: ', x, call. = FALSE)
+    cli_abort('Unknown tag type: {.val {x}}')
   )
 }

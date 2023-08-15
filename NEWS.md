@@ -1,5 +1,25 @@
 # patchwork (development version)
 
+# patchwork 1.1.3
+
+* `NULL` can now be used with the different arithmetic operators and will result
+  in a non-operation (i.e. the non-null part will be returned unmodified) (#290)
+* Fix a bug that prevented plots with multi-level strips from being merged 
+  together (#277)
+* Patchworks will now render correctly when unserialised in a fresh session, 
+  providing the patchwork package is available (#242)
+* Fixed a bug preventing faceted plots with strip placement outside the axis 
+  from being aligned (#325)
+* Fixed a bug that let to inconsistent results when combining fixed aspect plots
+  in different order (#274)
+* Fixed a bug that prevented nested patchworks with empty columns or rows at the 
+  bottom or to the right to be inserted into a layout (#273)
+* Patchwork objects now behaves more correctly like an unnamed list of ggplots. 
+  This makes `View()` work on them (#317), and allow one to use `length()` to
+  determine the number of patches in a patchwork (#293)
+* Expressions and calls can now be used as plot annotations in the same way as
+  they can be used for titles in ggplot2 (#295)
+
 # patchwork 1.1.2
 
 * Better error message if rendering fails due to too small plotting space
