@@ -136,6 +136,7 @@ collect_axes <- function(gt, dir = "x") {
 # For every given row, check if all non-zero grobs occupying that row have a
 # name that has a pattern. If all these grobs in that row do, measure the
 # grob heights and put that into the gtable's heights.
+#' @importFrom ggplot2 max_height
 retrofit_rows <- function(gt, rows, pattern = NULL) {
   if (is.null(pattern) || length(rows) == 0) {
     return(gt)
@@ -166,6 +167,7 @@ retrofit_rows <- function(gt, rows, pattern = NULL) {
 # For every given column, check if all non-zero grobs occupying that column
 # have a name that has a pattern. If all these grobs in that column do, measure
 # the grob widths and put that into the gtable's widths.
+#' @importFrom ggplot2 max_width
 retrofit_cols <- function(gt, cols, pattern = NULL) {
   if (is.null(pattern) || length(cols) == 0) {
     return(gt)
@@ -240,6 +242,7 @@ is_zero <- function(x) {
 }
 
 # Determine uniqueness of grobs
+#' @importFrom stats ave
 grob_id <- function(grobs, layout, byrow, merge = FALSE) {
 
   # Hash the grobs to determine unique grobs
@@ -284,6 +287,28 @@ grob_layout <- function(gt, idx) {
   new
 }
 
+# Backports of hash table functionality
+hashtab <- function(type, size) {
+  new_environment()
+}
+gethash <- function(h, key, nomatch = NULL) {
+  get0(hash(key), envir = h, ifnotfound = nomatch)
+}
+sethash <- function(h, key, value) {
+  assign(hash(key), value, envir = h)
+}
+on_load({
+  if ("hashtab" %in% getNamespaceExports("utils")) {
+    hashtab <- utils::hashtab
+  }
+  if ("gethash" %in% getNamespaceExports("utils")) {
+    gethash <- utils::gethash
+  }
+  if ("sethash" %in% getNamespaceExports("utils")) {
+    sethash <- utils::sethash
+  }
+})
+
 # 2D equivalent of run-length encoding.
 # Essentially, it tries to look for rectangular arrangements of cells in a
 # matrix that have the same values, and reports back their positions.
@@ -307,7 +332,6 @@ grob_layout <- function(gt, idx) {
 # #> 2         1       2         3       3     2
 # #> 5         3       3         1       2     3
 # #> 6         3       3         3       3     1
-#' @importFrom utils hashtab gethash sethash
 rle_2d <- function(m, byrow = FALSE) {
 
   n <- length(m)
@@ -413,7 +437,7 @@ rle_2d <- function(m, byrow = FALSE) {
   # Initialise hash table no longer than number of runs
   # Inspiration for using hash tables for this problem taken from TimTaylor:
   # https://fosstodon.org/@_TimTaylor/111266682218212785
-  htab <- hashtab(size = length(values))
+  htab <- hashtab("identical", size = length(values))
 
   for (i in seq_along(values)) {
 
