@@ -339,9 +339,25 @@ plot_table.free_plot <- function(x, guides) {
     )
   }
 
-  gt <- gt[seq_len(nrow(gt) - 4) + 2, seq_len(ncol(gt) - 4) + 2]
-  table <- gtable_add_grob(table, list(gt), 3, 3, TABLE_ROWS - 2,
+  gt_central <- gt[seq_len(nrow(gt) - 4) + 2, seq_len(ncol(gt) - 4) + 2]
+  table <- gtable_add_grob(table, list(gt_central), 3, 3, TABLE_ROWS - 2,
                            TABLE_COLS - 2, clip = 'on', name = 'free_plot')
+
+  # Add tag if it was free floating and removed during the above indexing
+  if (!is_zero(tag) && !is.character(tag_pos) && !"tag" %in% gt_central$layout$name) {
+    tag_idx <- which(gt$layout$name == "tag")
+    table <- gtable_add_grob(
+      table,
+      tag,
+      name = "tag",
+      t = gt$layout$t[tag_idx],
+      l = gt$layout$l[tag_idx],
+      b = gt$layout$b[tag_idx],
+      r = gt$layout$r[tag_idx],
+      z <- max(table$layout$z) + 1,
+      clip = "off"
+    )
+  }
   table$collected_guides <- collected_guides
   table
 }
@@ -353,6 +369,8 @@ simplify_gt <- function(gt) {
 #' @importFrom grid unit convertWidth convertHeight
 #' @export
 simplify_gt.gtable <- function(gt) {
+  guides <- gt$collected_guides
+  gt$collected_guides <- NULL
   panel_pos <- find_panel(gt)
   rows <- c(panel_pos$t, panel_pos$b)
   cols <- c(panel_pos$l, panel_pos$r)
@@ -370,16 +388,20 @@ simplify_gt.gtable <- function(gt) {
   gt_new <- gtable_add_rows(gt_new, unit(1, 'null'), rows[1] - 1)
   gt_new <- gtable_add_cols(gt_new, unit(1, 'null'), cols[1] - 1)
   if (gt$respect) {
-    simplify_fixed(gt, gt_new, panels, rows, cols)
+    gt_new <- simplify_fixed(gt, gt_new, panels, rows, cols)
   } else {
-    simplify_free(gt, gt_new, panels, rows, cols)
+    gt_new <- simplify_free(gt, gt_new, panels, rows, cols)
   }
+  gt_new$collected_guides <- guides
+  gt_new
 }
 #' @importFrom grid unit.c unit
 #' @importFrom ggplot2 find_panel
 #' @importFrom gtable gtable gtable_add_grob
 #' @export
 simplify_gt.gtable_patchwork <- function(gt) {
+  guides <- gt$collected_guides
+  gt$collected_guides <- NULL
   panel_pos <- find_panel(gt)
   widths <- unit.c(gt$widths[seq_len(panel_pos$l - 1)], unit(1, 'null'), gt$widths[seq(panel_pos$r + 1, ncol(gt))])
   heights <- unit.c(gt$heights[seq_len(panel_pos$t - 1)], unit(1, 'null'), gt$heights[seq(panel_pos$b + 1, nrow(gt))])
@@ -387,6 +409,7 @@ simplify_gt.gtable_patchwork <- function(gt) {
   gt_new <- gtable_add_grob(gt_new, zeroGrob(), PANEL_ROW, PANEL_COL, name = 'panel-nested-patchwork')
   gt_new <- gtable_add_grob(gt_new, gt, 1, 1, nrow(gt_new), ncol(gt_new), clip = 'off', name = 'patchwork-table')
   class(gt_new) <- c('gtable_patchwork_simple', class(gt_new))
+  gt_new$collected_guides <- guides
   gt_new
 }
 #' @export
@@ -862,7 +885,7 @@ set_panel_dimensions <- function(gt, panels, widths, heights, fixed_asp, design)
     all_fixed_rows <- table(unlist(lapply(fixed_areas, `[[`, 'rows')))
     all_fixed_cols <- table(unlist(lapply(fixed_areas, `[[`, 'cols')))
     controls_dim <- vapply(fixed_areas, function(a) {
-      all(all_fixed_rows[as.character(a$rows)] == 1) || all(all_fixed_rows[as.character(a$cols)] == 1)
+      all(all_fixed_rows[as.character(a$rows)] == 1) || all(all_fixed_cols[as.character(a$cols)] == 1)
     }, logical(1))
     for (i in order(controls_dim)) {
       panel_ind <- grep('panel', panels[[fixed_gt[i]]]$layout$name)[1]
