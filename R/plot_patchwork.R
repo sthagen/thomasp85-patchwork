@@ -643,7 +643,32 @@ free_panel <- function(gt, has_side) {
   gt$widths[panel_col_pos][as.numeric(panel_width) == 0] <- unit(1, "null")
   gt$heights[panel_row_pos][as.numeric(panel_height) == 0] <- unit(1, "null")
 
-  gt <- liberate_area(gt, top, right, bottom, left, "free_panel")
+  # Fixed aspect plots needs special treatment
+  if (isTRUE(gt$respect)) {
+    p_i <- grep("panel;", gt$layout$name)
+    if (has_side[1]) {
+      h <- gt$grobs[[p_i]]$grobs[[grep("top", gt$grobs[[p_i]]$layout$name)]]
+      gt$grobs[[p_i]] <- gtable_add_rows(gt$grobs[[p_i]], sum(h$heights), pos = 0)
+      gt$layout$t[p_i] <- top
+    }
+    if (has_side[2]) {
+      w <- gt$grobs[[p_i]]$grobs[[grep("right", gt$grobs[[p_i]]$layout$name)]]
+      gt$grobs[[p_i]] <- gtable_add_cols(gt$grobs[[p_i]], sum(w$widths), pos = -1)
+      gt$layout$r[p_i] <- right
+    }
+    if (has_side[3]) {
+      h <- gt$grobs[[p_i]]$grobs[[grep("bottom", gt$grobs[[p_i]]$layout$name)]]
+      gt$grobs[[p_i]] <- gtable_add_rows(gt$grobs[[p_i]], sum(h$heights), pos = -1)
+      gt$layout$b[p_i] <- bottom
+    }
+    if (has_side[4]) {
+      w <- gt$grobs[[p_i]]$grobs[[grep("left", gt$grobs[[p_i]]$layout$name)]]
+      gt$grobs[[p_i]] <- gtable_add_cols(gt$grobs[[p_i]], sum(w$widths), pos = 0)
+      gt$layout$l[p_i] <- left
+    }
+  } else {
+    gt <- liberate_area(gt, top, right, bottom, left, "free_panel")
+  }
 
   if (!has_side[1] && (has_side[2] || has_side[4])) {
     gt <- liberate_rows(gt, 3, right, top - 1, left, align = 0)
@@ -697,6 +722,8 @@ liberate_cols <- function(gt, top, right, bottom ,left, align = 0.5) {
   gt
 }
 free_label <- function(gt, has_side) {
+  # Fixed aspect plots already have this behaviour
+  if (isTRUE(gt$respect)) return(gt)
   nested <- grep("patchwork-table", gt$layout$name)
   for (i in nested) {
     loc <- gt$layout[i, ]
@@ -1009,6 +1036,7 @@ find_strip_pos <- function(gt) {
   }
   'inside'
 }
+
 set_panel_dimensions <- function(gt, panels, widths, heights, fixed_asp, design) {
   width_ind <- seq(PANEL_COL, by = TABLE_COLS, length.out = length(widths))
   height_ind <- seq(PANEL_ROW, by = TABLE_ROWS, length.out = length(heights))
@@ -1022,6 +1050,24 @@ set_panel_dimensions <- function(gt, panels, widths, heights, fixed_asp, design)
     heights <- unit(heights, 'null')
   }
   height_strings <- as.character(heights)
+
+  panel_widths <- do.call(unit.c, lapply(panels, function(x) x$widths[PANEL_COL]))
+  absolute_col <- unitType(panel_widths) == "points"
+  if (any(absolute_col)) {
+    pos <- ifelse(absolute_col & design$l == design$r & width_strings[design$l] == "-1null", design$l, NA)
+    fixed_widths <- lapply(split(panel_widths, pos), "sum")
+    widths[as.numeric(names(fixed_widths))] <- do.call(unit.c, fixed_widths)
+    width_strings <- as.character(widths)
+  }
+  panel_heights <- do.call(unit.c, lapply(panels, function(x) x$heights[PANEL_ROW]))
+  absolute_row <- unitType(panel_heights) == "points"
+  if (any(absolute_row)) {
+    pos <- ifelse(absolute_row & design$t == design$b & height_strings[design$t] == "-1null", design$t, NA)
+    fixed_heights <- lapply(split(panel_heights, pos), "sum")
+    heights[as.numeric(names(fixed_heights))] <- do.call(unit.c, fixed_heights)
+    height_strings <- as.character(heights)
+  }
+
   if (any(width_strings == '-1null') && any(height_strings == '-1null')) {
     respect <- matrix(0, nrow = length(gt$heights), ncol = length(gt$widths))
     fixed_areas <- lapply(which(fixed_asp), function(i) {
@@ -1042,8 +1088,11 @@ set_panel_dimensions <- function(gt, panels, widths, heights, fixed_asp, design)
     }, logical(1))
     for (i in order(controls_dim)) {
       panel_ind <- grep('panel', panels[[fixed_gt[i]]]$layout$name)[1]
-      w <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$widths
-      h <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$heights
+      # Guard against rows and cols added by free_panel()
+      content_cols <- range(panels[[fixed_gt[i]]]$grobs[[panel_ind]]$layout$l, panels[[fixed_gt[i]]]$grobs[[panel_ind]]$layout$r)
+      content_rows <- range(panels[[fixed_gt[i]]]$grobs[[panel_ind]]$layout$t, panels[[fixed_gt[i]]]$grobs[[panel_ind]]$layout$b)
+      w <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$widths[content_cols[1]:content_cols[2]]
+      h <- panels[[fixed_gt[i]]]$grobs[[panel_ind]]$heights[content_rows[1]:content_rows[2]]
       can_set_width <- all(width_strings[fixed_areas[[i]]$cols] == '-1null') && length(w) == 1 && length(h) == 1
       can_set_height <- all(height_strings[fixed_areas[[i]]$rows] == '-1null') && length(w) == 1 && length(h) == 1
       will_be_fixed <- TRUE
