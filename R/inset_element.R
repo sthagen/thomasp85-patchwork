@@ -70,10 +70,10 @@ inset_element <- function(p, left, bottom, right, top, align_to = 'panel', on_to
   if (!is.unit(top)) {
     top <- unit(top, 'npc')
   }
-  if (!is.ggplot(p)) {
+  if (!is_ggplot(p)) {
     p <- wrap_elements(full = p, clip = FALSE)
   }
-  if (!is.ggplot(p)) {
+  if (!is_ggplot(p)) {
     p <- wrap_elements(full = p, clip = clip)
   }
   clip <- if (clip) 'on' else 'off'

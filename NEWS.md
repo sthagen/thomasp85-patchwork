@@ -1,5 +1,7 @@
 # patchwork (development version)
 
+* Fixed a load-time bug that could throw spurious warnings
+
 # patchwork 1.3.1
 
 * Prepare for next ggplot2 release

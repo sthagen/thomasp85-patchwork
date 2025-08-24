@@ -128,7 +128,7 @@ ggplot_gtable.fixed_dim_build <- function(data) {
 #' @rdname multipage_align
 #' @export
 get_max_dim <- function(...) {
-  if (is.ggplot(..1)) {
+  if (is_ggplot(..1)) {
     plots <- list(...)
   } else if (is.list(..1)) {
     plots <- ..1
@@ -148,7 +148,7 @@ get_max_dim <- function(...) {
 #' @rdname multipage_align
 #' @export
 align_patches <- function(...) {
-  if (is.ggplot(..1)) {
+  if (is_ggplot(..1)) {
     plots <- list(...)
   } else if (is.list(..1)) {
     plots <- ..1

@@ -17,7 +17,7 @@
 #'
 #' @return A `patchwork` object
 #'
-#' @importFrom ggplot2 is.ggplot
+#' @importFrom ggplot2 is_ggplot
 #' @export
 #'
 #' @examples
@@ -74,6 +74,6 @@ wrap_plots <- function(..., ncol = NULL, nrow = NULL, byrow = NULL,
   )
 }
 
-#' @importFrom ggplot2 is.ggplot
+#' @importFrom ggplot2 is_ggplot
 #' @importFrom grid is.grob
-is_valid_plot <- function(x) is.ggplot(x) || is.grob(x)
+is_valid_plot <- function(x) is_ggplot(x) || is.grob(x)

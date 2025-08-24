@@ -94,7 +94,7 @@ names.patchwork <- function(x) NULL
     cli_abort('Patchworks can only be indexed with numeric indices')
   }
 
-  if (!is.ggplot(value)) {
+  if (!is_ggplot(value)) {
     value <- wrap_elements(value)
   }
   n_patches <- length(x$patches$plots)

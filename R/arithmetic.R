@@ -68,7 +68,7 @@ NULL
   if (is.null(e2)) return(e1)
   if (is.null(e1)) return(e2)
   if (should_autowrap(e2)) e2 <- wrap_elements(full = e2)
-  if (!is.ggplot(e2)) cli_abort("Only knows how to fold ggplot objects together")
+  if (!is_ggplot(e2)) cli_abort("Only knows how to fold ggplot objects together")
   patchwork <- new_patchwork()
   if (is_patchwork(e2)) {
     plot <- plot_filler()
@@ -122,12 +122,12 @@ NULL
   e1 + e2
 }
 #' @rdname plot_arithmetic
-#' @importFrom ggplot2 is.theme
+#' @importFrom ggplot2 is_theme
 #' @export
 "&.gg" <- function(e1, e2) {
   if (is.null(e2)) return(e1)
   if (is_patchwork(e1)) {
-    if (is.theme(e2)) {
+    if (is_theme(e2)) {
       e1$patches$annotation$theme <- e1$patches$annotation$theme + e2
     }
     e1$patches$plots <- lapply(e1$patches$plots, function(p) {

@@ -30,7 +30,7 @@
 #' reserve any space for it. This allows the axis to occupy space in an
 #' otherwise empty area without making additional space available for itself.
 #'
-#' @importFrom ggplot2 is.ggplot
+#' @importFrom ggplot2 is_ggplot
 #' @export
 #'
 #' @examples
@@ -72,7 +72,7 @@
 #' plot_spacer() + free(p1, "space", "l") + p2 + p2
 #'
 free <- function(x, type = c("panel", "label", "space"), side = "trbl") {
-  check_object(x, function(x) is.ggplot(x) || is_patchwork(x), "a <ggplot> or <patchwork> object")
+  check_object(x, function(x) is_ggplot(x) || is_patchwork(x), "a <ggplot> or <patchwork> object")
   type <- arg_match(type)
   side <- tolower(side)
   if (grepl("[^trbl]", side)) {
