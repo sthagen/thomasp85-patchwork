@@ -1,12 +1,12 @@
 #' @importFrom ggplot2 ggplot_add
 #' @export
-ggplot_add.ggplot <- function(object, plot, object_name) {
+ggplot_add.ggplot <- function(object, plot, ...) {
   patches <- get_patches(plot)
   add_patches(object, patches)
 }
 #' @importFrom ggplot2 ggplot_add
 #' @export
-ggplot_add.grob <- function(object, plot, object_name) {
+ggplot_add.grob <- function(object, plot, ...) {
   table <- as_patch(object)
   plot + wrap_elements(full = object)
 }
@@ -21,7 +21,7 @@ ggplot_add.raster <- ggplot_add.grob
 ggplot_add.nativeRaster <- ggplot_add.grob
 #' @importFrom ggplot2 ggplot_add
 #' @export
-ggplot_add.gt_tbl <- function(object, plot, object_name) {
+ggplot_add.gt_tbl <- function(object, plot, ...) {
   plot + wrap_table(object)
 }
 

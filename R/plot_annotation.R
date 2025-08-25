@@ -102,9 +102,8 @@ on_load({
 })
 
 #' @importFrom utils modifyList
-#' @importFrom ggplot2 is_waiver
 #' @export
-ggplot_add.plot_annotation <- function(object, plot, object_name) {
+ggplot_add.plot_annotation <- function(object, plot, ...) {
   plot <- as_patchwork(plot)
   if (is.null(object$theme)) {
     plot$patches$annotation$theme <- NULL

@@ -106,7 +106,7 @@ set_dim.patchwork <- function(plot, dim) {
 }
 #' @importFrom ggplot2 ggplot_build
 #' @export
-ggplot_build.fixed_dim_ggplot <- function(plot) {
+ggplot_build.fixed_dim_ggplot <- function(plot, ...) {
   plot <- NextMethod()
   class(plot) <- c('fixed_dim_build', class(plot))
   plot

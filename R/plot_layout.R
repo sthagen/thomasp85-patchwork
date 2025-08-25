@@ -43,7 +43,6 @@
 #'
 #' @export
 #'
-#' @importFrom ggplot2 is_waiver
 #' @examples
 #' library(ggplot2)
 #'
@@ -315,9 +314,8 @@ default_layout <- plot_layout(
   axes = 'keep', axis_titles = 'keep'
 )
 #' @importFrom utils modifyList
-#' @importFrom ggplot2 is_waiver
 #' @export
-ggplot_add.plot_layout <- function(object, plot, object_name) {
+ggplot_add.plot_layout <- function(object, plot, ...) {
   plot <- as_patchwork(plot)
   do_change <- object[!vapply(object, is_waiver, logical(1))]
   plot$patches$layout[names(do_change)] <- do_change

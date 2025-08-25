@@ -7,7 +7,12 @@ expect_doppelganger <- vdiffr::expect_doppelganger
 # Predefined plots
 
 library(ggplot2)
-ggplot2::set_theme(ggplot2::theme_test() + ggplot2::theme(panel.grid = ggplot2::element_blank()))
+
+if (packageVersion("ggplot2") >= "4.0.0") {
+  ggplot2::set_theme(ggplot2::theme_test() + ggplot2::theme(panel.grid = ggplot2::element_blank()))
+} else {
+  ggplot2::theme_set(ggplot2::theme_test() + ggplot2::theme(panel.grid = ggplot2::element_blank()))
+}
 
 p1 <- ggplot2::ggplot(mtcars) +
   ggplot2::geom_point(ggplot2::aes(mpg, disp)) +
